@@ -1,0 +1,59 @@
+stages:
+  - Build
+  - Deploy
+  - DeployStaging
+  - DeployProduction
+
+Build:
+  stage: Build
+  image: amelacorp/node:14-buster-slim
+  except:
+    - develop
+    - master
+  script:
+    - npm install
+    - npm run build
+Deploy:
+  stage: Deploy
+  image: node:14.15.4
+  only: ['develop']
+  script:
+    - apt-get update && apt-get install rsync -y && apt-get install openssh-server -y
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H '54.178.207.10' >> ~/.ssh/known_hosts
+    - echo "$PRIVATE_DEPLOY_KEY_DEV" > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh/id_rsa
+    - yarn install
+    - yarn build
+    - rsync --progress -avzh -e "ssh -i ~/.ssh/id_rsa" --rsync-path="sudo rsync" . ubuntu@$SERVER_DEV_DOMAIN:~/agriconnect-api
+    - ssh -i ~/.ssh/id_rsa ubuntu@54.178.207.10 "cd agriconnect-api && pm2 startOrRestart ecosystem.config.js --only agriconnect-api --env production --update-env"
+DeployStaging:
+  stage: DeployStaging
+  image: amelacorp/node:14-buster-slim
+  only: ['develop']
+  when: manual
+  script:
+    - apt-get update && apt-get install rsync -y && apt-get install openssh-server -y
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H '3.112.205.184' >> ~/.ssh/known_hosts
+    - echo "$PRIVATE_DEPLOY_KEY_STG" > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh/id_rsa
+    - yarn install
+    - yarn build
+    - rsync --progress -avzh -e "ssh -i ~/.ssh/id_rsa" --rsync-path="sudo rsync" . ubuntu@$SERVER_STG_DOMAIN:~/agriconnect-api
+    - ssh -i ~/.ssh/id_rsa ubuntu@3.112.205.184 "cd agriconnect-api && pm2 startOrRestart ecosystem.config.js --only agriconnect-api-stg --env staging --update-env"
+DeployProduction:
+  stage: DeployProduction
+  image: amelacorp/node:14-buster-slim
+  only: ['master']
+  when: manual
+  script:
+    - apt-get update && apt-get install rsync -y && apt-get install openssh-server -y
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H '13.115.118.104' >> ~/.ssh/known_hosts
+    - echo "$PRIVATE_DEPLOY_KEY_PROD" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - yarn install
+    - yarn build
+    - rsync --progress -avzh -e "ssh -i ~/.ssh/id_rsa" --rsync-path="sudo rsync" . ubuntu@13.115.118.104:~/agriconnect-api
+    - ssh -i ~/.ssh/id_rsa ubuntu@13.115.118.104 "cd agriconnect-api && pm2 startOrRestart ecosystem.config.js --only agriconnect-api-prod --env production --update-env"

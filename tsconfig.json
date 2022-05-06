@@ -1,0 +1,36 @@
+{
+	"compilerOptions": {
+		"lib": ["es5", "es6", "DOM"],
+		"target": "es5",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"outDir": "./dist",
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"sourceMap": true,
+		"types": ["node"],
+		"typeRoots": ["./src/types", "node_modules/@types"],
+		"baseUrl": "./src",
+		"paths": {
+			"$entity/*": ["entity/*"],
+			"$utils/*": ["utils/*"],
+			"$config/*": ["config/*"],
+			"$migration/*": ["migration/*"],
+			"$schema/*": ["schema/*"],
+			"$middleware/*": ["middleware/*"],
+			"$feature/*": ["feature/*"],
+			"$model/*": ["model/*"],
+			"$interface/*": ["types/interface/*"],
+			"$enum/*": ["types/enum/*"],
+			"$decorator/*": ["decorator/*"],
+			"$types/*": ["types/*"],
+			"$mongo/*": ["mongo/*"],
+			"$socket/*": ["socket/*"]
+		}
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "**/*.test.ts"]
+}
